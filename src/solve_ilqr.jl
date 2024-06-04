@@ -5,26 +5,35 @@
 Notes:
 - Closed form update equations are derived from Hamiltonian
 """
-function solve(dynamics_function :: Function, Q :: Vector{Vector},
-    Q_T :: Vector{Vector}, R :: Vector{Vector}, x_T :: Vector, x_0 :: Float32,
-    T :: Float32, state_space_degree :: Int, action_space_degree :: Int, threshold :: Float32,
-    iter_limit :: Int = 10)
+function solve(dynamics_function :: Function, Q :: Matrix{Float64},
+    Q_T :: Matrix{Float64}, R :: Matrix{Float64}, x_T :: Vector, x_0 :: Vector{Float64},
+    T :: Int64, state_space_degree :: Int64, action_space_degree :: Int64, threshold :: Float64,
+    iter_limit :: Int64 = 10)
     
     x = Symbolics.variables(:x, 1 : state_space_degree)
     u = Symbolics.variables(:u, 1 : action_space_degree)
 
-    dynamics = eval(Symbolics.build_function(dynamics_function(x, u), x, u)[1]);
+    f = dynamics_function(x, u)
+    dynamics = eval(Symbolics.build_function(f, x, u)[1]);
 
     ∇ₓf = Symbolics.gradient(dynamics, x)
     ∇ᵤf = Symbolics.gradient(dynamics, u)
 
     # First forward pass
-    nominal_state_sequence = [x_0]
-    nominal_control_sequence = zeros((action_space_degree, T - 1))
+    nominal_state_sequence = zeros((T - 1, action_space_degree))
+    nominal_control_sequence = zeros((T - 1, action_space_degree))
+
+    nominal_state_sequence[1,:] = x_0
+
     for k = 2 : T
-        push!(nominal_state_sequence, dynamics_function(
-            nominal_state_sequence[k - 1, :, :],
-            nominal_control_sequence[k - 1, :, :]))
+        println("nominal stuff")
+        println(nominal_control_sequence[k - 1, :])
+        println(nominal_state_sequence[k - 1, :])
+        nominal_state_sequence[k,:] = dynamics_function(
+            nominal_state_sequence[k - 1, :],
+            nominal_control_sequence[k - 1, :])
+
+            
     end
 
     new_nominal_state_sequence = copy(nominal_state_sequence)
@@ -90,3 +99,4 @@ function cost(Q, R, Q_T, x̄, ū, x_T, T)
     return f
 end
 
+export solve

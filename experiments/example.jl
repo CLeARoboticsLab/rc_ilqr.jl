@@ -1,11 +1,21 @@
 using rc_ilqr
 
 # system dynamics
-function step_forward(x :: Vector{Float}, u :: Vector{Float})
-    A = [1.0, 1.0; 0.0, 1.0]
-    B = [0.0; 1.0]
-    return A * x + B * u
+function step_forward(x, u)
+
+    println("x: ", x, " size: ", size(x))
+    println("u: ", u, " size: ", size(u))
+    A = [1.0 1.0; 0.0 1.0]
+    B = [0.0 0.0; 1.0 0.0]
+
+   
+    println("A: ", A, " size: ", size(A))
+    println("B: ", B, " size: ", size(B))
+
+    return (A * x + B * u)
 end
+
+
 
 # total number of time steps
 T = 11
@@ -15,9 +25,9 @@ x_0 = [0.0; 0.0]
 x_T = [1.0; 0.0]
 
 # obj function stuff
-Q = [0.1, 0.0; 0.0, 0.1]
-Q_T = [0.1, 0.0; 0.0, 0.1]
-R = [0.1, 0.0; 0.0, 0.1]
+Q = [0.1 0.0; 0.0 0.1]
+Q_T = [0.1 0.0; 0.0 0.1]
+R = [0.1 0.0; 0.0 0.1]
 
 # objective function
 function objective_function(x̄, ū, T = T)
@@ -41,10 +51,9 @@ inequality_constraints = [
 # solve
 # TODO: create solver and output
 
-[x, u] = solve(step_forward, Q,
+x, u = solve(step_forward, Q,
     Q_T, R, x_T, x_0,
-    T, 2, 2, 10e-2,
-    iter_limit = 10)
+    T, 2, 2, 10e-2)
 
 println(x)
 println("---------")
