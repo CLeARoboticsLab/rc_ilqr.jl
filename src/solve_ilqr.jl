@@ -14,21 +14,23 @@ function solve(dynamics_function :: Function, Q :: Matrix{Float64},
     u = Symbolics.variables(:u, 1 : action_space_degree)
 
     f = dynamics_function(x, u)
-    dynamics = eval(Symbolics.build_function(f, x, u)[1]);
+    dynamics = eval(Symbolics.build_function(f, x, u)[1])
 
-    ∇ₓf = Symbolics.gradient(dynamics, x)
-    ∇ᵤf = Symbolics.gradient(dynamics, u)
+    ∇ₓf = Symbolics.jacobian(f, x)
+    # println(∇ₓf)
+    ∇ᵤf = Symbolics.jacobian(f, u)
+    # println(∇ᵤf)
 
     # First forward pass
-    nominal_state_sequence = zeros((T - 1, action_space_degree))
+    nominal_state_sequence = zeros((T, action_space_degree))
     nominal_control_sequence = zeros((T - 1, action_space_degree))
 
     nominal_state_sequence[1,:] = x_0
 
     for k = 2 : T
-        println("nominal stuff")
-        println(nominal_control_sequence[k - 1, :])
-        println(nominal_state_sequence[k - 1, :])
+        # println("nominal stuff")
+        # println(nominal_control_sequence[k - 1, :])
+        # println(nominal_state_sequence[k - 1, :])
         nominal_state_sequence[k,:] = dynamics_function(
             nominal_state_sequence[k - 1, :],
             nominal_control_sequence[k - 1, :])
@@ -37,9 +39,9 @@ function solve(dynamics_function :: Function, Q :: Matrix{Float64},
     end
 
     new_nominal_state_sequence = copy(nominal_state_sequence)
-    delta_u = zeros((action_space_degree, T - 1))
+    delta_u = zeros((T - 1, action_space_degree))
 
-    old_cost = cost(Q, R, Q_T, nominal_state_sequence, full_control_sequence_old, x_T, T)
+    old_cost = cost(Q, R, Q_T, nominal_state_sequence, nominal_control_sequence, x_T, T)
 
     S_all = zeros((T, size(Q)...))
     S_all[T, :, :] = Q_T
@@ -48,53 +50,75 @@ function solve(dynamics_function :: Function, Q :: Matrix{Float64},
     v_all[T, :, :] = Q_T * (nominal_state_sequence[T, :, :] - x_T)
 
     iter = 0
+    
+
     while iter <= iter_limit
     # backwards pass
-    for k = T - 1 : -1 : 1
-        delta_x = full_trajectory_new - nominal_state_sequence
-        A = eval(build_function(∇ₓf, nominal_state_sequence[k, :, :], 
-            nominal_control_sequence[k, :, :], expression=Val{false}))
-        B = eval(build_function(∇ᵤf, nominal_state_sequence[k, :, :], 
-            nominal_control_sequence[k, :, :], expression=Val{false}))
+        for k = T - 1 : -1 : 1
+            delta_x = new_nominal_state_sequence - nominal_state_sequence
+            A_call = eval(build_function(∇ₓf, nominal_state_sequence[k, :, :], 
+                nominal_control_sequence[k, :, :], expression=Val{false})[1])
+                
+            B_call = eval(build_function(∇ᵤf, nominal_state_sequence[k, :, :], 
+                nominal_control_sequence[k, :, :], expression=Val{false})[1])
 
-        K = inverse(B' * S_all[k + 1, :, :] * B + R) * B' * S_all[k + 1, :, :] * A
-        Kᵥ = inverse(B' * S_all[k + 1, :, :] * B + R) * B'
-        Kᵤ = inverse(B' * S_all[k + 1, :, :] * B + R) * R
-        S_all[k, :, :] = A' * S_all[k + 1, :, :] * (A - B * K) + Q
-        v_all[k, :, :] = (A - B*K)' * v_all[k + 1, :, :] - K' * R * nominal_control_sequence[k, :, :] 
-            + Q * nominal_state_sequence[k, :, :]
+            A = A_call(nominal_state_sequence[k, :, :], nominal_control_sequence[k, :, :])
+            B = B_call(nominal_state_sequence[k, :, :], nominal_control_sequence[k, :, :])
 
-        delta_u[k, :, :] = -K * delta_x[k, :, :] - Kᵥ * v_all[k + 1, :, :] - Kᵤ * nominal_control_sequence[k, :, :]
-    end
+            # println("B stuff")
+            # println(B_call)
+            # println(A)
+            # println(B)
 
-    # forward pass
-    for k = 2 : T
-        new_nominal_state_sequence[k, :, :] = dynamics_function(
-            new_nominal_state_sequence[k - 1, :, :],
-            nominal_control_sequence[k - 1, :, :] + delta_u[k - 1, :, :])
-    end
-    new_cost = cost(Q, R, Q_T, new_nominal_state_sequence, nominal_control_sequence + delta_u, x_T, T)
+            # println(B' * S_all[k + 1, :, :] * B)
+            # println()
+            # println(R)
 
-    delta_cost = old_cost - new_cost
-    if delta_cost < 0
-        return [nominal_state_sequence, nominal_control_sequence]
-    elseif delta_cost <= threshold 
-        return [new_nominal_state_sequence, nominal_control_sequence + delta_u]
-    else
-        nominal_state_sequence = new_nominal_state_sequence
-        nominal_control_sequence += delta_u
-        old_cost = new_cost
+            K = inv(B' * S_all[k + 1, :, :] * B + R) * B' * S_all[k + 1, :, :] * A
+            Kᵥ = inv(B' * S_all[k + 1, :, :] * B + R) * B'
+            Kᵤ = inv(B' * S_all[k + 1, :, :] * B + R) * R
+            S_all[k, :, :] = A' * S_all[k + 1, :, :] * (A - B * K) + Q
+            v_all[k, :, :] = (A - B*K)' * v_all[k + 1, :, :] - K' * R * nominal_control_sequence[k, :, :] 
+                + Q * nominal_state_sequence[k, :, :]
+
+            # println(delta_u)
+            # println(delta_u[k, :, :])
+            delta_u[k, :, :] = -K * delta_x[k, :] - Kᵥ * v_all[k + 1, :, :] - Kᵤ * nominal_control_sequence[k, :, :]
+        end
+
+        # forward pass
+        for k = 2 : T
+            new_nominal_state_sequence[k, :, :] = dynamics_function(
+                new_nominal_state_sequence[k - 1, :, :],
+                nominal_control_sequence[k - 1, :, :] + delta_u[k - 1, :, :])
+        end
+        new_cost = cost(Q, R, Q_T, new_nominal_state_sequence, nominal_control_sequence + delta_u, x_T, T)
+
+        delta_cost = old_cost - new_cost
+        if delta_cost < 0
+            println("1")
+            return [nominal_state_sequence, nominal_control_sequence]
+        elseif delta_cost <= threshold 
+            println("2")
+            return [new_nominal_state_sequence, nominal_control_sequence + delta_u]
+        else
+            println("3")
+            nominal_state_sequence = new_nominal_state_sequence
+            nominal_control_sequence += delta_u
+            old_cost = new_cost
+        end
+        iter += 1
+        println("3.5")
     end
-    iter += 1
-    end
+    println("4")
 end
 
 function cost(Q, R, Q_T, x̄, ū, x_T, T)
     f = 0
     for t = 1 : T - 1 # Column at t?
-        f += x̄[:, t]' * Q * x̄[:, t] + ū[:, t]' * R * ū[:, t] 
+        f += x̄[t, :]' * Q * x̄[t, :] + ū[t, :]' * R * ū[t, :] 
     end
-    f += (x̄[:, T] - x_T)' * Q_T * (x̄[:, T] - x_T)
+    f += (x̄[T, :] - x_T)' * Q_T * (x̄[T, :] - x_T)
 
     return f
 end

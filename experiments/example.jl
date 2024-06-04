@@ -3,14 +3,8 @@ using rc_ilqr
 # system dynamics
 function step_forward(x, u)
 
-    println("x: ", x, " size: ", size(x))
-    println("u: ", u, " size: ", size(u))
     A = [1.0 1.0; 0.0 1.0]
-    B = [0.0 0.0; 1.0 0.0]
-
-   
-    println("A: ", A, " size: ", size(A))
-    println("B: ", B, " size: ", size(B))
+    B = [0.0 1.0; 1.0 0.0]
 
     return (A * x + B * u)
 end
