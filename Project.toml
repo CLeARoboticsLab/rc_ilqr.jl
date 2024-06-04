@@ -2,3 +2,8 @@ name = "rc_ilqr"
 uuid = "ffa9895b-0dfc-4e6c-8243-75680bdae195"
 authors = ["Ryan Park <ryanjpark03@gmail.com>", "Cade Armstrong <caderade.a@gmail.com>"]
 version = "0.1.0"
+
+[deps]
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
+Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"

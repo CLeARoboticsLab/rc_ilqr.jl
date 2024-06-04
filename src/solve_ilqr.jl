@@ -6,8 +6,8 @@ Notes:
 - Closed form update equations are derived from Hamiltonian
 """
 function solve(dynamics_function :: Function, Q :: Vector{Vector},
-    Q_T :: Vector{Vector}, R :: Vector{Vector}, x_T :: Vector, x_0 :: Float,
-    T :: Float, state_space_degree :: Int, action_space_degree :: Int, threshold :: Float,
+    Q_T :: Vector{Vector}, R :: Vector{Vector}, x_T :: Vector, x_0 :: Float32,
+    T :: Float32, state_space_degree :: Int, action_space_degree :: Int, threshold :: Float32,
     iter_limit :: Int = 10)
     
     x = Symbolics.variables(:x, 1 : state_space_degree)
@@ -69,7 +69,7 @@ function solve(dynamics_function :: Function, Q :: Vector{Vector},
     delta_cost = old_cost - new_cost
     if delta_cost < 0
         return [nominal_state_sequence, nominal_control_sequence]
-    else if delta_cost <= threshold 
+    elseif delta_cost <= threshold 
         return [new_nominal_state_sequence, nominal_control_sequence + delta_u]
     else
         nominal_state_sequence = new_nominal_state_sequence
