@@ -8,7 +8,7 @@ Notes:
 function solve(dynamics_function :: Function, Q :: Matrix{Float64},
     Q_T :: Matrix{Float64}, R :: Matrix{Float64}, x_T :: Vector, x_0 :: Vector{Float64},
     T :: Int64, state_space_degree :: Int64, action_space_degree :: Int64, threshold :: Float64,
-    iter_limit :: Int64 = 10)
+    iter_limit :: Int64 = 1000)
     
     x = Symbolics.variables(:x, 1 : state_space_degree)
     u = Symbolics.variables(:u, 1 : action_space_degree)
@@ -95,11 +95,14 @@ function solve(dynamics_function :: Function, Q :: Matrix{Float64},
         new_cost = cost(Q, R, Q_T, new_nominal_state_sequence, nominal_control_sequence + delta_u, x_T, T)
 
         delta_cost = old_cost - new_cost
+        print("old cost: ")
+        println(old_cost, " new cost: ", new_cost)
         if delta_cost < 0
             println("1")
             return [nominal_state_sequence, nominal_control_sequence]
-        elseif delta_cost <= threshold 
+        elseif delta_cost <= threshold && delta_cost >= 0
             println("2")
+            print(delta_cost)
             return [new_nominal_state_sequence, nominal_control_sequence + delta_u]
         else
             println("3")
@@ -110,7 +113,7 @@ function solve(dynamics_function :: Function, Q :: Matrix{Float64},
         iter += 1
         println("3.5")
     end
-    println("4")
+    println("4, didn't converge")
 end
 
 function cost(Q, R, Q_T, x̄, ū, x_T, T)
