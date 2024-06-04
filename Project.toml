@@ -1,0 +1,4 @@
+name = "rc_ilqr"
+uuid = "ffa9895b-0dfc-4e6c-8243-75680bdae195"
+authors = ["Ryan Park <ryanjpark03@gmail.com>", "Cade Armstrong <caderade.a@gmail.com>"]
+version = "0.1.0"
