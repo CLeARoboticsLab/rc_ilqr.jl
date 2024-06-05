@@ -4,7 +4,7 @@ using LinearAlgebra
 Uses Smith's method to solve the Lyapunov Equation
 """
 
-function solve_lyapunov(Aₒ :: Matrix{Float64}, q :: Float64 = -1.0, DDᵀ :: Matrix{Float64}, tol :: Float64, iter_lim :: Int64 = 50)
+function solve_lyapunov(Aₒ :: Matrix{Float64}, DDᵀ :: Matrix{Float64}, tol :: Float64, iter_lim :: Int64 = 50, q :: Float64 = -1.0)
 
     n = size(Aₒ)[1]
 

@@ -22,8 +22,8 @@ function solve_algebraic_riccati(A :: Matrix{Float64}, B :: Matrix{Float64},
 
     S = A + B * K
 
-    P_old = solve_lyapunov_custom(S, Q, K, R, lyapunov_tolerance, max_lyapunov_iters)
-    P_new = Array{Float64}(undef, 0, 0)
+    P_new = solve_lyapunov_custom(S, Q, K, R, lyapunov_tolerance, max_lyapunov_iters)
+    P_old = Array{Float64}(undef, size(P_new)...)
 
     iters = 0
 
@@ -31,9 +31,9 @@ function solve_algebraic_riccati(A :: Matrix{Float64}, B :: Matrix{Float64},
         P_old = copy(P_new)
         iters += 1
 
-        K = -1 * inv(R) * B' * P_new
+        K = -1 * inv(R) * B' * P_old
         S = A + B * K
-        
+    
         P_new = solve_lyapunov_custom(S, Q, K, R, lyapunov_tolerance, max_lyapunov_iters)
     end
     return P_new
@@ -42,14 +42,16 @@ end
 
 function solve_lyapunov_custom(S :: Matrix{Float64}, Q :: Matrix{Float64}, K :: Matrix{Float64},
     R :: Matrix{Float64}, lyapunov_tolerance :: Float64, max_lyapunov_iters :: Int64 = 50)
-    return solve_lyapunov(S, q = -1.0, (Q + K' * R * K), lyapunov_tolerance, iter_lim = max_lyapunov_iters)
+    return solve_lyapunov(S, (Q + K' * R * K), lyapunov_tolerance, max_lyapunov_iters, -1.0)
 end
 
 function gerghgorin_gamma(A :: Matrix{Float64})
     gamma = 0
-    for t = 1 : min(sizeof(A))
+    for t = 1 : size(A)[1]
         temp = norm(A[t, :], 1)
         gamma = max(gamma, temp)
     end
     return gamma + 1
 end
+
+export solve_algebraic_riccati
