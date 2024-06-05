@@ -36,6 +36,6 @@ function solve_lyapunov(Aₒ :: Matrix{Float64}, q :: Float64 = -1.0, DDᵀ :: M
     return -1
 end
 
-
+export solve_lyapunov
 
 

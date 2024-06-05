@@ -10,13 +10,15 @@ include("smith_method.jl")
 Solve the Algebraic Riccati equation using Newton-Kleinman with Smith's method
 to solve the Lyapunov equation
 """
-function solve_algebraic_riccati(A, B, Q, R, riccati_tolerance = 10e-5,
-    lyapunov_tolerance = 10e-5, max_riccati_iters = 10e3,
-    max_lyapunov_iters = 10e5)
+function solve_algebraic_riccati(A :: Matrix{Float64}, B :: Matrix{Float64},
+    Q :: Matrix{Float64}, R :: Matrix{Float64}, riccati_tolerance :: Float64 = 10e-5,
+    lyapunov_tolerance :: Float64 = 10e-5, max_riccati_iters :: Float64 = 10e3,
+    max_lyapunov_iters :: Int64 = 100)
 
 
     # Initialize K, S, P 
-    K = Array{Float64}(undef, 0, 0) # TODO: K needs to make A + B * K Hurwitz
+    gamma = gerghgorin_gamma(A)
+    K = -1 * inv(B' * B) * B' * gamma
 
     S = A + B * K
 
@@ -38,6 +40,16 @@ function solve_algebraic_riccati(A, B, Q, R, riccati_tolerance = 10e-5,
 end
 
 
-function solve_lyapunov_custom(S, Q, K, R, lyapunov_tolerance, max_lyapunov_iters = 50)
-    return solve_lyapunov(S, q = -1.0, Q + K' * R * K, lyapunov_tolerance, iter_lim = max_lyapunov_iters)
+function solve_lyapunov_custom(S :: Matrix{Float64}, Q :: Matrix{Float64}, K :: Matrix{Float64},
+    R :: Matrix{Float64}, lyapunov_tolerance :: Float64, max_lyapunov_iters :: Int64 = 50)
+    return solve_lyapunov(S, q = -1.0, (Q + K' * R * K), lyapunov_tolerance, iter_lim = max_lyapunov_iters)
+end
+
+function gerghgorin_gamma(A :: Matrix{Float64})
+    gamma = 0
+    for t = 1 : min(sizeof(A))
+        temp = norm(A[t, :], 1)
+        gamma = max(gamma, temp)
+    end
+    return gamma + 1
 end
