@@ -3,14 +3,14 @@ using rc_ilqr
 
 function particle_solve()
     # total number of time steps
-    T = 11
+    T = 5
 
     # initial state
-    x_0 = [0.0; 0.0]
-    x_T = [1.0; 0.0]
+    x_0 = [2.0; 5.0]
+    x_T = [0.0; 0.0]
 
     # obj function stuff
-    Q = [0.01 0.0; 0.0 0.01]
+    Q = [0.1 0.0; 0.0 0.1]
     Q_T = [.1 0.0; 0.0 .1]
     R = [0.1 0.0; 0.0 0.1]
 
@@ -26,12 +26,12 @@ function particle_solve()
     function step_forward(x, u)
 
         A = [1.0 1.0; 0.0 1.0]
-        B = [0.0 1.0; 1.0 0.0]
+        B = [1.0 0.0; 0.0 1.0]
 
         return (A * x + B * u)
     end
 
-    x, u = solve(step_forward, Q,
+    x, u = solve_ilqr(step_forward, Q,
         Q_T, R, x_T, x_0,
         T, 2, 2, 10e-3)
 
