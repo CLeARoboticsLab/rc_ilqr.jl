@@ -91,7 +91,7 @@ function solve_continuous_finite_lqr(A :: Matrix{Float64}, B :: Matrix{Float64},
     K = Array{Matrix{Float64}}(undef, size(S)[1], 1)
 
     for i = 1 : size(S)[1]
-        K[i] = -1 * inv(R) * B' * S[i]
+        K[i] = inv(R) * B' * S[i]
     end
 
     return (K, S)
@@ -103,57 +103,6 @@ end
 """
 
 function solve_discrete_lqr()
-
-end
-
-
-"""
-"""
-function test_solve_continuous_inf_lqr()
-
-    A = [1.0 1.0; 0 1.0]
-    B = [1.0 0.0;0.0 1.0]
-    Q = [1.0 0.0;0.0 1.0]
-    R = 0.1 * [1.0 0.0;0.0 1.0]
-
-    K,S = solve_continuous_inf_lqr(A,B,Q,R)
-
-    println("K: ", K)
-    println("S: ", S)
-
-    x = get_continuous_LQR_trajectory(A,B,K,[1.0;1.0])
-
-    println("x: ", x)
-
-    xs = [p[1] for p in x]
-    ys = [p[2] for p in x]
-
-
-    fig = Figure()
-
-    ax = Axis(fig[1,1], xlabel = "x1", ylabel = "x2")
-    lines!(ax, xs,ys)
-
-    fig
-
-
-
-
-end
-    
-    
-function test_solve_continuous_finite_lqr()
-
-    A = [1.0 1.0; 0 1.0]
-    B = [1.0 0.0;0.0 1.0]
-    Q = [1.0 0.0;0.0 1.0]
-    Q_f = copy(Q)
-    R = 0.1 * [1.0 0.0;0.0 1.0]
-
-    K,S = solve_continuous_finite_lqr(A,B,Q,Q_f,R, 0, 11, 1)
-
-    println("K: ", K)
-    println("S: ", S)
 
 end
 

@@ -28,7 +28,7 @@ function get_continuous_LQR_trajectory(A :: Matrix{Float64},B :: Matrix{Float64}
     end
 
     # Infinite Horizion
-    if t_span == [-1.0,-1.0]
+    if t_span == [-1.0, -1.0]
 
         x = Array{Vector{Float64}}(undef, 1)
 
@@ -60,9 +60,10 @@ function get_continuous_LQR_trajectory(A :: Matrix{Float64},B :: Matrix{Float64}
 
         x[1] = xₒ
 
-        for i = t_span[1]: step_size: t_span[2]
+        for (i,t) in enumerate(t_span[1]: step_size: t_span[2])
 
-            push!(x, xdot(x[i],A,B,K[i]) * step_size + x[i])
+            push!(x, round.(xdot(x[i],A,B,K[i]) * step_size + x[i], digits = 10))
+
         end
 
         return x
