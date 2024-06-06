@@ -99,7 +99,7 @@ end
 """
 """
 function solve_riccati_difference(A :: Matrix{Float64}, B :: Matrix{Float64},
-    Q :: Matrix{Float64}, R :: Matrix{Float64}, N :: Float64)
+    Q :: Matrix{Float64}, R :: Matrix{Float64}, N :: Int64)
 
     S = Array{Matrix{Float64}}(undef, N, 1)
 

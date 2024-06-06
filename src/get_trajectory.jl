@@ -70,4 +70,30 @@ function get_continuous_LQR_trajectory(A :: Matrix{Float64},B :: Matrix{Float64}
     end
 end
 
-export get_continuous_LQR_trajectory
+function get_discrete_LQR_trajectory(A :: Matrix{Float64},B :: Matrix{Float64}, K, xₒ :: Vector{Float64}, 
+     N :: Int64 = -1)
+
+    function next_x(x,K)
+        return (A-B*K) * x
+    end
+
+    if N == -1
+
+    else
+        x = Array{Vector{Float64}}(undef, 1)
+
+        x[1] = xₒ
+
+        for i = 1:N
+
+            push!(x, round.(next_x(x[i], K[i]), digits = 10))
+
+        end
+
+        return x
+
+    end
+
+end
+
+export get_continuous_LQR_trajectory, get_discrete_LQR_trajectory

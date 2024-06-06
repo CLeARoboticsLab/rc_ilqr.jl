@@ -103,7 +103,7 @@ end
 
 """
 function solve_discrete_finite_lqr(A :: Matrix{Float64}, B :: Matrix{Float64},
-    Q :: Matrix{Float64}, R :: Matrix{Float64}, N :: Float64)
+    Q :: Matrix{Float64}, R :: Matrix{Float64}, N :: Int64)
 
     S = solve_riccati_difference(A, B, Q, R, N)
 
@@ -115,3 +115,4 @@ function solve_discrete_finite_lqr(A :: Matrix{Float64}, B :: Matrix{Float64},
     return (K, S)
 end
 
+export solve_continuous_finite_lqr, solve_continuous_inf_lqr, solve_discrete_finite_lqr
