@@ -92,3 +92,33 @@ function test_solve_discrete_finite_lqr()
     fig
 
 end
+
+function test_solve_discrete_inf_lqr()
+
+    A = [1.0 1.0; 0 1.0]
+    B = [1.0 0.0;0.0 1.0]
+    Q = [1.0 0.0;0.0 1.0]
+    R = 0.1 * [1.0 0.0;0.0 1.0]
+    Sₒ = [1.0 0.0;0.0 1.0]
+
+    K,S = solve_discrete_inf_lqr(A,B,Q,R,Sₒ)
+
+    println("K: ", K)
+    println("S: ", S)
+
+    x = get_discrete_LQR_trajectory(A,B,K,[1.0, 1.0])
+
+    println("x: ", x)
+
+    xs = [p[1] for p in x]
+    ys = [p[2] for p in x]
+
+
+    fig = Figure()
+
+    ax = Axis(fig[1,1], xlabel = "x₁", ylabel = "x₂")
+    lines!(ax, xs,ys)
+
+    fig
+
+end

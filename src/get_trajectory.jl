@@ -78,6 +78,30 @@ function get_discrete_LQR_trajectory(A :: Matrix{Float64},B :: Matrix{Float64}, 
     end
 
     if N == -1
+        x = Array{Vector{Float64}}(undef, 1)
+
+        x[1] = xₒ
+
+        i = 0
+
+        iter_lim = 50
+        tol = 10e-5
+
+        while i < iter_lim
+
+            i += 1  
+
+            push!(x, next_x(x[i],K))
+
+            if LinearAlgebra.norm(x[i+1] - x[i] , 2) < tol
+                println("Trajectory Solver Converged")
+                return x
+            end
+
+        end
+
+        println("Trajectory Didn't Converge")
+
 
     else
         x = Array{Vector{Float64}}(undef, 1)

@@ -113,6 +113,22 @@ function solve_riccati_difference(A :: Matrix{Float64}, B :: Matrix{Float64},
     return S
 end
 
+"""
+"""
+
+function solve_dare(A :: Matrix{Float64},B :: Matrix{Float64},Q :: Matrix{Float64},R :: Matrix{Float64},Sₒ :: Matrix{Float64},
+    tol :: Float64 = 10e-5,iter_lim :: Int64 = 100)
+
+    function dare(S)
+        return Q + A'*S*A - (A' * S * B) * inv(R + B'*S*B) * (B'*S*A) # Returns S
+    end
+
+    S = fixed_point_solve(dare, Sₒ, tol, iter_lim)
+
+    return S
+end
+
+
 
 """
     Anonymous function to solve the Lyapunov Equation (Aₒx + Aᵀₒx = -DDᵀ) in this
@@ -158,5 +174,30 @@ function gerghgorin_gamma(A :: Matrix{Float64})
     end
     return gamma + 1
 end
+
+function fixed_point_solve(func :: Function, initial_guess, tol :: Float64 = 10e-5, iter_lim :: Int64 = 50)
+
+    iter = 0
+
+    new_guess = initial_guess
+
+    while iter < iter_lim
+
+        old_guess = copy(new_guess)
+
+        new_guess = func(old_guess)
+
+        if LinearAlgebra.norm(new_guess - old_guess , 2) < tol
+            println("Fixed Point Method Converged")
+            return new_guess
+        end
+
+        iter += 1
+    end
+    println("ERROR: Fixed Point Method Failed")
+    return nothing
+
+end
+
 
 export solve_algebraic_riccati, solve_differential_riccati, solve_riccati_difference
