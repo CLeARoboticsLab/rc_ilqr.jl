@@ -100,9 +100,18 @@ end
 
 
 """
+
 """
+function solve_discrete_finite_lqr(A :: Matrix{Float64}, B :: Matrix{Float64},
+    Q :: Matrix{Float64}, R :: Matrix{Float64}, N :: Float64)
 
-function solve_discrete_lqr()
+    S = solve_riccati_difference(A, B, Q, R, N)
 
+    K = Array{Matrix{Float64}}(undef, N, 1)
+    for n = 1 : N
+        K[n] = inv(R + B' * S[n] * B) * B' * S[n] * A
+    end
+
+    return (K, S)
 end
 

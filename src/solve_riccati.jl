@@ -96,6 +96,22 @@ function solve_differential_riccati(A :: Matrix{Float64}, B :: Matrix{Float64},
     return S
 end
 
+"""
+"""
+function solve_riccati_difference(A :: Matrix{Float64}, B :: Matrix{Float64},
+    Q :: Matrix{Float64}, R :: Matrix{Float64}, N :: Float64)
+
+    S = Array{Matrix{Float64}}(undef, N, 1)
+
+    sz = size(A)[2]
+    S[N] = zeros((sz, sz))
+
+    for n = N - 1 : -1 : 1
+        S[n] = Q  + A' * S[n + 1] * A - (A' * S[n + 1] * B) * inv(R + B' * S[n + 1] * B) * (B' * S[n + 1] * A)
+    end
+
+    return S
+end
 
 
 """
@@ -143,5 +159,4 @@ function gerghgorin_gamma(A :: Matrix{Float64})
     return gamma + 1
 end
 
-export solve_algebraic_riccati
-export solve_differential_riccati
+export solve_algebraic_riccati, solve_differential_riccati, solve_riccati_difference
