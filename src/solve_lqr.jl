@@ -2,7 +2,7 @@
 # using Symbolics
 using LinearAlgebra
 using DifferentialEquations
-
+using GLMakie
 
 include("solve_riccati.jl")
 include("get_trajectory.jl")
@@ -126,7 +126,19 @@ function test_solve_continuous_inf_lqr()
 
     x = get_continuous_LQR_trajectory(A,B,K,[1.0;1.0])
 
-    println(x)
+    println("x: ", x)
+
+    xs = [p[1] for p in x]
+    ys = [p[2] for p in x]
+
+
+    fig = Figure()
+
+    ax = Axis(fig[1,1], xlabel = "x1", ylabel = "x2")
+    lines!(ax, xs,ys)
+
+    fig
+
 
 
 
