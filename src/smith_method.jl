@@ -1,24 +1,23 @@
 using LinearAlgebra
 
 """
-Uses Smith's method to solve the Lyapunov Equation
+    Uses Smith's method to solve the Lyapunov Equation
 
-Notes: 
-    Lyapunov equation: Aₒᵀ * X + X * Aₒ = - D * Dᵀ
+    Notes: 
+        Lyapunov equation: Aₒᵀ * X + X * Aₒ = - D * Dᵀ
 
-Parameters:
-    Aₒ =  Term being transposed in the left-hand side of the Lyapunov equation
-    DDᵀ = Right hand side of the Lyapunov equation
-    tol = Tolerance threshold, once the new x values are tol close
-        to the old x values we stop iterating
-    iter_lim = Maximum number of iterations
-    q = A float less than 0 which may contributes to the speed of convergence
+    Parameters:
+        Aₒ =  Term being transposed in the left-hand side of the Lyapunov equation
+        DDᵀ = Right hand side of the Lyapunov equation
+        tol = Tolerance threshold, once the new x values are tol close
+            to the old x values we stop iterating
+        iter_lim = Maximum number of iterations
+        q = A float less than 0 which may contributes to the speed of convergence
 
-Output:
-    x_new = A value of X such that the Lyapunov equation holds
+    Output:
+        x_new = A value of X such that the Lyapunov equation holds
 
 """
-
 function solve_lyapunov(Aₒ :: Matrix{Float64}, DDᵀ :: Matrix{Float64},
     tol :: Float64, iter_lim :: Int64 = 50, q :: Float64 = -1.0)
 
