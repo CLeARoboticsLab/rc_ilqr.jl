@@ -3,7 +3,9 @@
 using LinearAlgebra
 using DifferentialEquations
 
+
 include("solve_riccati.jl")
+include("get_trajectory.jl")
 
 """
 Solves the continuous, infinite horizon lqr problem for the given A, B, Q, and R.
@@ -43,7 +45,7 @@ function solve_continuous_inf_lqr(A :: Matrix{Float64}, B :: Matrix{Float64},
     # Solving LQR problem boils down to solving the riccati equation
     S = solve_algebraic_riccati(A, B, Q, R)
 
-    K = -inv(R) * B' * S
+    K = inv(R) * B' * S
 
     return (K,S)
 end
@@ -117,10 +119,16 @@ function test_solve_continuous_inf_lqr()
     Q = [1.0 0.0;0.0 1.0]
     R = 0.1 * [1.0 0.0;0.0 1.0]
 
-    K,S = solve_continuous_info_lqr(A,B,Q,R)
+    K,S = solve_continuous_inf_lqr(A,B,Q,R)
 
     println("K: ", K)
     println("S: ", S)
+
+    x = get_continuous_LQR_trajectory(A,B,K,[1.0;1.0])
+
+    println(x)
+
+
 
 end
     

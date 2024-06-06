@@ -17,12 +17,12 @@ function get_continuous_LQR_trajectory(A :: Matrix{Float64},B :: Matrix{Float64}
 
         i = 0
 
-        iter_lim = 5000
+        iter_lim = 50
         tol = 10e-5
 
         while i < iter_lim
 
-            i += 1
+            i += 1  
 
             push!(x, xdot(x[i],A,B,K) * step_size + x[i])
 
@@ -49,3 +49,5 @@ function get_continuous_LQR_trajectory(A :: Matrix{Float64},B :: Matrix{Float64}
         return x
     end
 end
+
+export get_continuous_LQR_trajectory
