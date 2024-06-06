@@ -56,6 +56,7 @@ function solve_lyapunov(Aₒ :: Matrix{Float64}, DDᵀ :: Matrix{Float64},
             return x_new
 
         end
+        iter +=1
     end
     println("ERROR: Lyapunov Equation failed to converge.")
     return nothing
