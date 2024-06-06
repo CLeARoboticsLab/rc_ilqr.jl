@@ -5,7 +5,7 @@ using DifferentialEquations
 using GLMakie
 
 include("solve_riccati.jl")
-include("utils.jl")
+include("get_trajectory.jl")
 
 """
     Solves the continuous, infinite horizon lqr problem for the given A, B, Q, and R.
