@@ -11,6 +11,8 @@ function solve_ilqr(dynamics_function :: Function, cost_function :: Function, Q 
     Q_T :: Matrix{Float64}, R :: Matrix{Float64}, x_T :: Vector, x_0 :: Vector{Float64},
     T :: Int64,threshold :: Float64, iter_limit :: Int64 = 1000)
 
+    step_size = 0.01
+
     state_space_degree = size(Q)[1]
     action_space_degree = size(R)[1]
     
@@ -29,7 +31,7 @@ function solve_ilqr(dynamics_function :: Function, cost_function :: Function, Q 
     nominal_control_sequence = Array{Vector{Float64}}(undef,1,T)
 
     for i in 1:T
-        nominal_control_sequence[i] = zeros(action_space_degree)
+        nominal_control_sequence[i] = 0.1*randn(action_space_degree)
     end
 
     nominal_state_sequence[1] = x_0
@@ -85,28 +87,30 @@ function solve_ilqr(dynamics_function :: Function, cost_function :: Function, Q 
                 nominal_control_sequence[k - 1] + delta_u[k - 1])
         end
 
-        new_cost = cost_function(Q, R, Q_T, new_nominal_state_sequence, nominal_control_sequence + delta_u, x_T, T)
+        new_cost = cost_function(Q, R, Q_T, new_nominal_state_sequence, nominal_control_sequence + step_size * delta_u, x_T, T)
 
         delta_cost = old_cost - new_cost
         println("old cost: ", old_cost, " new cost: ", new_cost)
         if delta_cost < 0
             println("ilqr step increased cost")
             println("num iters: ", iter)
-            return [nominal_state_sequence, nominal_control_sequence]
+            # return [nominal_state_sequence, nominal_control_sequence]
         elseif delta_cost <= threshold
             println("converged, delta cost: ", delta_cost)
             println("num iters: ", iter)
-            return [new_nominal_state_sequence, nominal_control_sequence + delta_u]
+            return [new_nominal_state_sequence, nominal_control_sequence + step_size * delta_u]
         else
             # println("")
             nominal_state_sequence = new_nominal_state_sequence
-            nominal_control_sequence += delta_u
+            nominal_control_sequence += step_size * delta_u
             old_cost = new_cost
         end
         iter += 1
     end
     println("4, didn't converge")
     println("num iters: ", iter)
+    println("x: ", nominal_state_sequence)
+    println("u: ", nominal_control_sequence)
 end
 
 export solve_ilqr

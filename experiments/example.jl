@@ -3,16 +3,16 @@ using rc_ilqr
 
 function particle_solve()
     # total number of time steps
-    T = 5
+    T = 11
 
     # initial state
-    x_0 = [0.0,0.0]
+    x_0 = [30.0,   10.0]
     x_T = [1.0; 0.0]
 
     # obj function stuff
-    Q = [0.1 0.0; 0.0 0.1]
+    Q = [1 0.0; 0.0 1]
     Q_T = copy(Q)
-    R = 0.1
+    R = hcat(0.1)
 
     # constraints
     equality_constraints = [ 
@@ -26,7 +26,8 @@ function particle_solve()
     function step_forward(x, u)
 
         A = [1.0 1.0; 0.0 1.0]
-        B = [0.0, 1.0]
+        B = hcat([0.0; 1.0])
+
 
         return (A * x + B * u)
     end
