@@ -28,11 +28,11 @@ function solve_ilqr(dynamics_function :: Function, Q :: Matrix{Float64},
 
     nominal_state_sequence[1,:] = x_0
 
-    # for k = 2 : T
-    #     nominal_state_sequence[k,:] = dynamics_function(
-    #         nominal_state_sequence[k - 1, :],
-    #         nominal_control_sequence[k - 1, :])
-    # end
+    for k = 2 : T
+        nominal_state_sequence[k,:] = dynamics_function(
+            nominal_state_sequence[k - 1, :],
+            nominal_control_sequence[k - 1, :])
+    end
 
     new_nominal_state_sequence = copy(nominal_state_sequence)
     delta_u = zeros((T - 1, action_space_degree))
