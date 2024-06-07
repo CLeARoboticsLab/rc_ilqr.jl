@@ -225,7 +225,7 @@ end
 
 function solve_ilqr_v3(dynamics_function :: Function, cost_function :: Function, Q :: Matrix{Float64},
     Q_T :: Matrix{Float64}, R :: Matrix{Float64}, x_T :: Vector, x_0 :: Vector{Float64},
-    T :: Int64,threshold :: Float64, iter_limit :: Int64 = 100)
+    T :: Int64, threshold :: Float64, iter_limit :: Int64 = 100)
 
     # The reason for this version is to try and use our lqr solvers. Kushagra told me:
     # δuₖ = - K * δxₖ 
@@ -245,7 +245,7 @@ function solve_ilqr_v3(dynamics_function :: Function, cost_function :: Function,
     # Initialize δu, u (nominal control sequence), trajectory (nominal state sequence)
     for k = 2:T
         nominal_control_sequence[k] = zeros(action_space_degree)
-        δu[k] = zeros(action_space_degree)
+        δu[k] = .1 * ones(action_space_degree)
         nominal_state_sequence[k] = dynamics_function(
             nominal_state_sequence[k - 1],
             nominal_control_sequence[k - 1])
@@ -288,7 +288,7 @@ function solve_ilqr_v3(dynamics_function :: Function, cost_function :: Function,
     iter = 0
     old_cost = cost_function(Q, R, Q_T, nominal_state_sequence, nominal_control_sequence, x_T, T)
 
-    while iter <= iter_limit && norm(δu, 2) < threshold
+    while iter <= iter_limit && norm(δu, 2) > threshold
 
         # Backward Pass
         for k = T - 1 : -1 : 1

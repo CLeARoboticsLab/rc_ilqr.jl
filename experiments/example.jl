@@ -32,7 +32,7 @@ function particle_solve()
         return (A * x + B * u)
     end
 
-    x, u = solve_ilqr_v2(step_forward,cost, Q,
+    x, u = solve_ilqr_v3(step_forward,cost, Q,
         Q_T, R, x_T, x_0,
         T, 10e-3)
 
@@ -71,8 +71,8 @@ function cost(Q, R, Q_T, x̄, ū, x_T, T)
     f += 0.5 * (x̄[T] - x_T)' * Q_T * (x̄[T] - x_T)
     state_cost += (x̄[T] - x_T)' * Q_T * (x̄[T] - x_T)
 
-    println("state assoc cost: ", state_cost)
-    println("control assoc cost: ", control_cost)
+    # println("state assoc cost: ", state_cost)
+    # println("control assoc cost: ", control_cost)
     return f
     # f = 0
     # for t = 1: T - 1
