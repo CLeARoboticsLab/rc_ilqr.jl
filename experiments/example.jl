@@ -6,13 +6,13 @@ function particle_solve()
     T = 5
 
     # initial state
-    x_0 = [2.0; 5.0]
-    x_T = [0.0; 0.0]
+    x_0 = [0.0,0.0]
+    x_T = [1.0; 0.0]
 
     # obj function stuff
     Q = [0.1 0.0; 0.0 0.1]
-    Q_T = [.1 0.0; 0.0 .1]
-    R = [0.1 0.0; 0.0 0.1]
+    Q_T = copy(Q)
+    R = 0.1
 
     # constraints
     equality_constraints = [ 
@@ -26,14 +26,14 @@ function particle_solve()
     function step_forward(x, u)
 
         A = [1.0 1.0; 0.0 1.0]
-        B = [1.0 0.0; 0.0 1.0]
+        B = [0.0, 1.0]
 
         return (A * x + B * u)
     end
 
-    x, u = solve_ilqr(step_forward, Q,
+    x, u = solve_ilqr(step_forward,cost, Q,
         Q_T, R, x_T, x_0,
-        T, 2, 2, 10e-3)
+        T, 10e-3)
 
     println(x)
     println("---------")
@@ -50,6 +50,37 @@ function objective_function_particle(x̄, ū, T = T)
 
     return f
 end
+
+
+function cost(Q, R, Q_T, x̄, ū, x_T, T)
+    f = 0
+    state_cost = 0
+    control_cost = 0
+    for t = 1 : T - 1 # Column at t?
+        # sc = (x̄[t, :] - x_T)' * Q * (x̄[t, :] - x_T)
+        sc = x̄[t]' * Q * x̄[t]
+        cc = ū[t]' * R * ū[t]
+
+        state_cost += sc
+        control_cost += cc
+
+        f += sc + cc
+    end
+    f += (x̄[T] - x_T)' * Q_T * (x̄[T] - x_T)
+    state_cost += (x̄[T] - x_T)' * Q_T * (x̄[T] - x_T)
+
+    println("state assoc cost: ", state_cost)
+    println("control assoc cost: ", control_cost)
+    return f
+    # f = 0
+    # for t = 1: T - 1
+    #     f +=  0.1 * dot((x̄[t, :] - x_T), (x̄[t, :] - x_T)) + 0.01 * dot(ū[t, :], ū[t, :])
+    # end
+    # f += 0.7 * dot((x̄[T, :] - x_T), (x̄[T, :] - x_T))
+    # return f
+end
+
+
 
 
 
