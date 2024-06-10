@@ -120,4 +120,10 @@ function get_discrete_LQR_trajectory(A :: Matrix{Float64},B :: Matrix{Float64}, 
 
 end
 
-export get_continuous_LQR_trajectory, get_discrete_LQR_trajectory
+function aprint(x)
+    for l in x
+        println(l)
+    end
+end
+
+export get_continuous_LQR_trajectory, get_discrete_LQR_trajectory, aprint

@@ -69,16 +69,21 @@ function test_solve_discrete_finite_lqr()
     B = [1.0 0.0;0.0 1.0]
     Q = [1.0 0.0;0.0 1.0]
     R = 0.1 * [1.0 0.0;0.0 1.0]
+    T = 11
+    x_0 = [3.0, 1.0]
 
 
-    K, S = solve_discrete_finite_lqr(A,B,Q,R,11)
+    K, S = solve_discrete_finite_lqr(A,B,Q,R,T)
 
-    println("K: ", K)
-    println("S: ", S)
+    # println("K: ", K)
+    # println("S: ", S)
 
-    x = get_discrete_LQR_trajectory(A,B,K,[1.0, 1.0],11)
+    x = get_discrete_LQR_trajectory(A,B,K,x_0,T)
 
-    println("x: ", x)
+    println("x: ")
+    aprint(x)
+    println("u: ")
+    aprint([-K[i] * x[i] for i = 1:T])
 
     xs = [p[1] for p in x]
     ys = [p[2] for p in x]

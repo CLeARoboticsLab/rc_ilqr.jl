@@ -240,12 +240,13 @@ function solve_ilqr_v3(dynamics_function :: Function, cost_function :: Function,
 
     nominal_state_sequence[1] = x_0
     nominal_control_sequence[1] = zeros(action_space_degree)
-    δu[1] = zeros(action_space_degree)
+    δu[1] = .1 * ones(action_space_degree)
 
     # Initialize δu, u (nominal control sequence), trajectory (nominal state sequence)
     for k = 2:T
         nominal_control_sequence[k] = zeros(action_space_degree)
         δu[k] = .1 * ones(action_space_degree)
+        # δu[k] = zeros(action_space_degree)
         nominal_state_sequence[k] = dynamics_function(
             nominal_state_sequence[k - 1],
             nominal_control_sequence[k - 1])
@@ -288,49 +289,77 @@ function solve_ilqr_v3(dynamics_function :: Function, cost_function :: Function,
     iter = 0
     old_cost = cost_function(Q, R, Q_T, nominal_state_sequence, nominal_control_sequence, x_T, T)
 
-    while iter <= iter_limit && norm(δu, 2) > threshold
+    S = Array{Matrix{Float64}}(undef,1,T)
+    S[T] = zeros((size(x_T)[1], size(x_T)[1]))
 
+    # println(norm(δu, 2))
+    # println(norm(δu, 2) == 0.0)
+    while (iter <= iter_limit && norm(δu, 2) > threshold) || (iter == 0)
+
+        # println("δx: ")
+        # aprint(δx)
         # Backward Pass
         for k = T - 1 : -1 : 1
             # TODO: Unsure
             (A, B) = find_A_B(nominal_state_sequence[k], nominal_control_sequence[k])
             K, S = solve_discrete_finite_lqr(A, B, Q, R, T - k)
-            δu[k] = - K[1] * δx[k]
+            K = K[1]
+
+            # Solve with riccati difference
+            # S[k] = Q  + A' * S[k + 1] * A - (A' * S[k + 1] * B) * inv(R + B' * S[k + 1] * B) * (B' * S[k + 1] * A)
+            # K = inv(R + B' * S[k] * B) * B' * S[k] * A
+
+            δu[k] = - K * δx[k]
         end
+
+        println("delta u: ")
+        aprint(δu)
+        new_nominal_state_sequence = Array{Vector{Float64}}(undef,1,T)
+        new_nominal_state_sequence[1] = x_0
+
+        new_nominal_control_sequence = nominal_control_sequence + δu
 
         for k = 2 : 1 : T
             # TODO: Ends are weird
-            nominal_state_sequence[k] = dynamics_function(
-                nominal_state_sequence[k - 1],
-                nominal_control_sequence[k - 1] + δu[k - 1])
+            new_nominal_state_sequence[k] = dynamics_function(
+                new_nominal_state_sequence[k - 1],
+                new_nominal_control_sequence[k - 1])
 
-            (A, B) = find_A_B(nominal_state_sequence[k],
-                nominal_control_sequence[k - 1] + δu[k - 1])
+            (A, B) = find_A_B(new_nominal_state_sequence[k],
+                new_nominal_control_sequence[k - 1])
 
             δx[k] = A * δx[k - 1] + B * δu[k - 1]
         end
 
-        new_cost = cost_function(Q, R, Q_T, nominal_state_sequence,
-            nominal_control_sequence + δu, x_T, T)
+        new_cost = cost_function(Q, R, Q_T, new_nominal_state_sequence,
+            new_nominal_control_sequence, x_T, T)
         iter += 1
 
-        if old_cost - new_cost < 0
+        if old_cost < new_cost
             println("oops")
-            return
+            println("new cost: ", new_cost, "\nold cost: ", old_cost)
+            println("x: ")
+            aprint(new_nominal_state_sequence)
+            println("u: ")
+            aprint(new_nominal_control_sequence)
+            return (nominal_state_sequence, nominal_control_sequence)
         else
             nominal_control_sequence += δu
+            nominal_state_sequence = new_nominal_state_sequence
+            old_cost = new_cost
         end
     end
 
-    if norm(δu, 2) <= threshold
+    if norm(δu, 2) <= threshold && iter != 0
         println("Converged")
+        println((iter <= iter_limit)," ", (norm(δu, 2) > threshold))
         return (nominal_state_sequence, nominal_control_sequence)
     elseif iter >= iter_limit
         println("Reached iter limit")
         return (nominal_state_sequence, nominal_control_sequence)
     else
         println("I don't know what happened please call 911")
-        return nothing
+        # return nothing
     end
 
 end

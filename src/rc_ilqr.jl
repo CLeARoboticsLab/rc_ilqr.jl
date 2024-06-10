@@ -6,5 +6,6 @@ using Revise
 
 include("solve_lqr.jl")
 include("solve_ilqr.jl")
+include("get_trajectory.jl")
 
 end
