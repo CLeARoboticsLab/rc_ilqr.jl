@@ -3,15 +3,15 @@ using rc_ilqr
 
 function particle_solve()
     # total number of time steps
-    T = 11
+    T = 10
 
     # initial state
-    x_0 = [30.0,   10.0]
-    x_T = [1.0; 0.0]
+    x_0 = [0.0, 2.0]
+    x_T = [0.0; 5.0]
 
     # obj function stuff
     Q = [1 0.0; 0.0 1]
-    Q_T = copy(Q)
+    Q_T = 100 * copy(Q)
     R = hcat(0.1)
 
     # constraints
@@ -32,13 +32,23 @@ function particle_solve()
         return (A * x + B * u)
     end
 
-    x, u = solve_ilqr_v3(step_forward,cost, Q,
+    x, u = solve_ilqr_v2(step_forward,cost, Q,
         Q_T, R, x_T, x_0,
         T, 10e-3)
 
     println(x)
     println("---------")
     println(u)
+
+    xs = [p[1] for p in vec(x)]
+    ys = [p[2] for p in vec(x)]
+    
+    fig = Figure()
+
+    ax = Axis(fig[1,1], xlabel = "x₁", ylabel = "speed")
+    scatterlines!(ax,[Point(x, y) for (x, y) in  zip(xs,ys)])
+
+    fig
 end
 
 # objective function
@@ -71,8 +81,8 @@ function cost(Q, R, Q_T, x̄, ū, x_T, T)
     f += 0.5 * (x̄[T] - x_T)' * Q_T * (x̄[T] - x_T)
     state_cost += (x̄[T] - x_T)' * Q_T * (x̄[T] - x_T)
 
-    # println("state assoc cost: ", state_cost)
-    # println("control assoc cost: ", control_cost)
+    println("state assoc cost: ", state_cost)
+    println("control assoc cost: ", control_cost)
     return f
     # f = 0
     # for t = 1: T - 1
